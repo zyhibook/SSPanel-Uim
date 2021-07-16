@@ -9,7 +9,7 @@
                         <div>首 页</div>
                     </a>
                     <div class="auth-logo">
-                        <img src="/images/authlogo.jpg">
+                        <img src="/images/uim-logo-round.png">
                     </div>
                     <a href="/auth/login" class="boardtop-right">
                         <div>登 录</div>
@@ -119,7 +119,7 @@
                             </div>
                         </div>
                     {/if}
-                    {if $recaptcha_sitekey != null}
+                    {if $config['enable_reg_captcha'] == true}
                         <div class="form-group form-group-label">
                             <div class="row">
                                 <div align="center" class="g-recaptcha" data-sitekey="{$recaptcha_sitekey}"></div>
@@ -265,16 +265,16 @@ document.getElementById('passwd').addEventListener('input', checkStrong);
                         name: $$getValue('name'),
                         passwd: $$getValue('passwd'),
                         repasswd: $$getValue('repasswd'),
-                        
-                        {if $recaptcha_sitekey != null}
+
+                        {if $config['enable_reg_captcha'] == true}
                         recaptcha: grecaptcha.getResponse(),
                         {/if}
 
-                        {if $enable_reg_im == true}
+                        {if $config['enable_reg_im'] == true}
                         im_value: $$getValue('im_value'),
                         im_type: $$getValue('im_type'),
                         {/if}
-                        
+
                         code{if $enable_email_verify == true},
                         emailcode: $$getValue('email_code'){/if}{if $geetest_html != null},
                         geetest_challenge: validate.geetest_challenge,
@@ -427,6 +427,10 @@ document.getElementById('passwd').addEventListener('input', checkStrong);
     </script>
 {/if}
 
+{if $config['enable_reg_captcha'] == true}
+    <script src="https://recaptcha.net/recaptcha/api.js" async defer></script>
+{/if}
+
 {*dumplin:aff链*}
 <script>
     {*dumplin：轮子1.js读取url参数*}
@@ -473,9 +477,4 @@ document.getElementById('passwd').addEventListener('input', checkStrong);
         $("#code").val(getCookie('code'));
     }
     {/if}
-
-
 </script>
-{if $recaptcha_sitekey != null}
-    <script src="https://recaptcha.net/recaptcha/api.js" async defer></script>
-{/if}

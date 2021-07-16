@@ -6,7 +6,7 @@ use Exception;
 
 /**
  * 世界这么大，何必要让它更艰难呢？
- * 
+ *
  * By GeekQuerxy
  */
 class ClientDownload extends Command
@@ -14,12 +14,6 @@ class ClientDownload extends Command
     public $description   = '├─=: php xcat ClientDownload - 定时更新客户端' . PHP_EOL;
 
     private $client;
-
-    /**
-     * Github access token
-     * 可解决 API 访问频率高而被限制
-     */
-    private $access_token = '';
 
     /**
      * 保存基本路径
@@ -44,14 +38,14 @@ class ClientDownload extends Command
         //     ],
         // ],
         [
-            'name'      => 'ShadowsocksrC#',
+            'name'      => 'ShadowsocksR-Windows',
             'tagMethod' => 'github_release',
-            'gitRepo'   => 'shadowsocksrr/shadowsocksr-csharp',
+            'gitRepo'   => 'HMBSbige/ShadowsocksR-Windows',
             'savePath'  => 'public/clients/',
             'downloads' => [
                 [
-                    'sourceName' => 'ShadowsocksR-win-%tagName%.zip',
-                    'saveName'   => 'ssr-win.zip',
+                    'sourceName' => 'ShadowsocksR-%tagName%.7z',
+                    'saveName'   => 'ssr-win.7z',
                     'apkpureUrl' => ''
                 ]
             ],
@@ -90,19 +84,6 @@ class ClientDownload extends Command
                     'saveName'   => 'Clash-Windows-arm64.dmg',
                     'apkpureUrl' => ''
                 ]
-            ],
-        ],
-        [
-            'name'      => 'ClashRforWindows',
-            'tagMethod' => 'github_release',
-            'gitRepo'   => 'BROBIRD/clash',
-            'savePath'  => 'public/clients/',
-            'downloads' => [
-                [
-                    'sourceName' => 'clash-windows-amd64-%tagName%.zip',
-                    'saveName'   => 'ClashR-Windows.zip',
-                    'apkpureUrl' => ''
-                ],
             ],
         ],
         [
@@ -209,26 +190,13 @@ class ClientDownload extends Command
             ],
         ],
         [
-            'name'      => 'Surfboard',
-            'tagMethod' => 'apkpure',
-            'gitRepo'   => 'https://apkpure.com/cn/surfboard/com.getsurfboard',
-            'savePath'  => 'public/clients/',
-            'downloads' => [
-                [
-                    'sourceName' => '',
-                    'saveName'   => 'Surfboard.apk',
-                    'apkpureUrl' => 'https://apkpure.com/cn/surfboard/com.getsurfboard/download?from=details'
-                ],
-            ],
-        ],
-        [
             'name'      => 'ClashforAndroid',
             'tagMethod' => 'github_pre_release',
             'gitRepo'   => 'Kr328/ClashForAndroid',
             'savePath'  => 'public/clients/',
             'downloads' => [
                 [
-                    'sourceName' => 'app-universal-release.apk',
+                    'sourceName' => 'app-premium-universal-release.apk',
                     'saveName'   => 'Clash-Android.apk',
                     'apkpureUrl' => ''
                 ],
@@ -248,14 +216,14 @@ class ClientDownload extends Command
             ],
         ],
         [
-            'name'      => 'ShadowsocksRRAndroid',
+            'name'      => 'ShadowsocksR-Android',
             'tagMethod' => 'github_release',
-            'gitRepo'   => 'shadowsocksrr/shadowsocksr-android',
+            'gitRepo'   => 'HMBSbige/ShadowsocksR-Android',
             'savePath'  => 'public/clients/',
             'downloads' => [
                 [
                     'sourceName' => 'shadowsocksr-android-%tagName%.apk',
-                    'saveName'   => 'ssrr-android.apk',
+                    'saveName'   => 'ssr-android.apk',
                     'apkpureUrl' => ''
                 ],
             ],
@@ -310,7 +278,7 @@ class ClientDownload extends Command
                 echo '- 保存 ' . $fileName . ' 至 ' . $savePath . ' 失败.' . PHP_EOL;
             } else {
                 echo '- 保存 ' . $fileName . ' 至 ' . $savePath . ' 成功.' . PHP_EOL;
-                system('chown www:www ' . $savePath . $fileName);
+                system('chown ' . $_ENV['php_user_group'] . ' ' . $savePath . $fileName);
             }
             return true;
         } catch (Exception $e) {
@@ -329,7 +297,7 @@ class ClientDownload extends Command
      */
     private function getLatestReleaseTagName(string $repo): string
     {
-        $url     = 'https://api.github.com/repos/' . $repo . '/releases/latest' . ($this->access_token != '' ? '?access_token=' . $this->access_token : '');
+        $url     = 'https://api.github.com/repos/' . $repo . '/releases/latest' . ($_ENV['github_access_token'] != '' ? '?access_token=' . $_ENV['github_access_token'] : '');
         $request = $this->client->get($url);
         return (string) json_decode(
             $request->getBody()->getContents(),
@@ -346,7 +314,7 @@ class ClientDownload extends Command
      */
     private function getLatestPreReleaseTagName(string $repo): string
     {
-        $url     = 'https://api.github.com/repos/' . $repo . '/releases' . ($this->access_token != '' ? '?access_token=' . $this->access_token : '');
+        $url     = 'https://api.github.com/repos/' . $repo . '/releases' . ($_ENV['github_access_token'] != '' ? '?access_token=' . $_ENV['github_access_token'] : '');
         $request = $this->client->get($url);
         $latest  = json_decode(
             $request->getBody()->getContents(),
@@ -482,7 +450,7 @@ class ClientDownload extends Command
                 if (!unlink($filePath)) {
                     echo '- 删除旧版本文件失败，此任务跳过，请检查权限等...' . PHP_EOL;
                     continue;
-                }                
+                }
             }
             if ($task['tagMethod'] == 'apkpure') {
                 $request = $this->client->get($download['apkpureUrl']);
@@ -492,7 +460,7 @@ class ClientDownload extends Command
                 $downloadUrl = 'https://github.com/' . $task['gitRepo'] . '/releases/download/' . $tagName . '/' . $sourceName;
             }
             if ($this->getSourceFile($fileName, $savePath, $downloadUrl)) {
-                $this->setLocalVersions($this->version); 
+                $this->setLocalVersions($this->version);
             }
         }
         echo '====== ' . $task['name'] . ' 结束 ======' . PHP_EOL;
